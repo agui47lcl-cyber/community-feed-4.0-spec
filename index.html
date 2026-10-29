@@ -1,0 +1,800 @@
+<!doctype html>
+<html lang="zh-CN">
+<meta charset="utf-8">
+<title>社区动态 4.0 · 需求规格可视化</title>
+<style>
+:root{
+  --bg:#fff; --fg:#14171a; --mut:#5d6b7a; --line:#e3e8ef; --card:#f7f9fb;
+  --accent:#07c160; --accent-soft:#e6f9ef; --warn:#c2410c; --warn-soft:#fdeee4;
+  --blue:#2563eb; --blue-soft:#e8effd;
+}
+@media (prefers-color-scheme:dark){
+  :root{--bg:#0f1418; --fg:#eef2f6; --mut:#9aa8b6; --line:#243039; --card:#161d23;
+    --accent:#2fd67f; --accent-soft:#12241b; --warn:#fb923c; --warn-soft:#2a1d13;
+    --blue:#7aa5f8; --blue-soft:#131c2e;}
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--fg);padding:0 0 90px;
+  font:15px/1.7 ui-sans-serif,-apple-system,"PingFang SC","Segoe UI",Roboto,sans-serif;
+  -webkit-font-smoothing:antialiased}
+a{color:var(--blue);text-decoration:none}
+
+/* ── 顶部 ── */
+header{position:sticky;top:0;z-index:50;background:var(--bg);border-bottom:1px solid var(--line);
+  padding:14px 28px 0}
+.h1row{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap}
+h1{font-size:21px;margin:0}
+.hsub{color:var(--mut);font-size:13px}
+nav{display:flex;gap:6px;margin-top:12px;overflow-x:auto}
+nav button{font:inherit;font-size:14px;padding:8px 16px;border-radius:9px 9px 0 0;cursor:pointer;
+  border:1px solid transparent;border-bottom:none;background:transparent;color:var(--mut)}
+nav button.on{background:var(--card);border-color:var(--line);color:var(--fg);font-weight:600}
+nav button:hover{color:var(--fg)}
+
+main{max-width:1060px;margin:0 auto;padding:26px 28px 0}
+
+/* ── 面板 ── */
+.panel{display:none}
+.panel.on{display:block;animation:fade .25s ease}
+@keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1}}
+
+h2{font-size:18px;margin:34px 0 6px;display:flex;align-items:center;gap:10px}
+h2:first-child{margin-top:4px}
+h2 .no{display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;
+  border-radius:8px;background:var(--accent-soft);color:var(--accent);font-size:13px;font-weight:700}
+.lede{color:var(--mut);font-size:13.5px;margin:0 0 16px;max-width:80ch}
+
+/* 模块卡 */
+.mod{border:1px solid var(--line);border-radius:14px;background:var(--card);padding:20px 22px;margin:0 0 22px}
+.mod-head{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px}
+.mod-head h3{font-size:16.5px;margin:0}
+.tag{font-size:12px;padding:2px 10px;border-radius:999px;background:var(--blue-soft);color:var(--blue);white-space:nowrap}
+.tag.g{background:var(--accent-soft);color:var(--accent)}
+.tag.w{background:var(--warn-soft);color:var(--warn)}
+
+.grid2{display:grid;gap:18px;grid-template-columns:repeat(auto-fit,minmax(300px,1fr))}
+.sub{border:1px solid var(--line);border-radius:11px;padding:14px 16px;background:var(--bg)}
+.sub h4{margin:0 0 8px;font-size:13.5px;color:var(--mut);font-weight:600;letter-spacing:.02em}
+.sub ul{margin:0;padding-left:18px}
+.sub li{margin:3px 0}
+.sub p{margin:4px 0}
+em.k{font-style:normal;color:var(--accent);font-weight:600}
+em.w{font-style:normal;color:var(--warn);font-weight:600}
+
+/* 表格 */
+table{border-collapse:collapse;width:100%;font-size:13.5px;margin:6px 0}
+th,td{border:1px solid var(--line);padding:7px 11px;text-align:left;vertical-align:top}
+th{background:var(--card);font-weight:600;font-size:12.5px;color:var(--mut)}
+tr:nth-child(even) td{background:color-mix(in srgb,var(--card) 55%,transparent)}
+
+/* 弹窗示意 */
+.dialog{max-width:340px;border:1px solid var(--line);border-radius:14px;overflow:hidden;
+  box-shadow:0 6px 26px rgba(0,0,0,.10);margin:10px 0}
+.dialog .dbox{padding:20px 18px;text-align:center;background:var(--bg)}
+.dialog .dbox b{display:block;font-size:15px;margin-bottom:6px}
+.dialog .dbox p{margin:0;font-size:13px;color:var(--mut)}
+.dialog .dbtns{display:flex;border-top:1px solid var(--line)}
+.dialog .dbtns span{flex:1;text-align:center;padding:11px;font-size:14px;cursor:default}
+.dialog .dbtns span+span{border-left:1px solid var(--line);font-weight:600;color:var(--accent)}
+.dialog.warn .dbtns span+span{color:var(--warn)}
+.dcap{font-size:12px;color:var(--mut);margin:6px 2px 0}
+
+/* ── 线框 ── */
+.wfrow{display:grid;gap:20px;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));margin:14px 0 4px}
+.wf{display:flex;flex-direction:column;align-items:center;gap:8px}
+.wfcap{font-size:12.5px;color:var(--mut)}
+.phone{width:218px;height:420px;border:2px solid var(--mut);border-radius:26px;padding:10px 9px;
+  display:flex;flex-direction:column;gap:7px;background:var(--bg);position:relative;overflow:hidden}
+.browser{border:2px solid var(--mut);border-radius:12px;overflow:hidden;background:var(--bg);width:100%}
+.browser .bbar{display:flex;align-items:center;gap:6px;background:var(--card);
+  border-bottom:1px solid var(--line);padding:7px 10px}
+.dot{width:9px;height:9px;border-radius:50%;background:var(--line)}
+.addr{flex:1;font-size:10.5px;color:var(--mut);background:var(--bg);border:1px solid var(--line);
+  border-radius:6px;padding:2px 8px}
+.bcontent{padding:11px;display:flex;flex-direction:column;gap:7px}
+
+.pz{border:1.5px dashed var(--mut);border-radius:9px;display:flex;align-items:center;justify-content:center;
+  color:var(--mut);font-size:10.5px;text-align:center;line-height:1.35;padding:4px}
+.pz.f{flex:1}
+.av{border-radius:50%;background:var(--line)}
+.pill{border-radius:999px}
+.liked{background:var(--accent-soft)!important;color:var(--accent)!important;border-color:var(--accent)!important}
+.fab{position:absolute;right:12px;bottom:12px;width:38px;height:38px;border-radius:50%;
+  background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;
+  font-size:20px;font-weight:700;box-shadow:0 4px 12px rgba(0,0,0,.18)}
+
+/* 首页线框内部件 */
+.navtabs{display:flex;gap:5px}
+.navtabs .nt{font-size:10px;padding:3px 8px;border-radius:999px;background:var(--card);
+  border:1px solid var(--line);color:var(--mut)}
+.navtabs .nt.on{background:var(--accent-soft);color:var(--accent);border-color:var(--accent);font-weight:700}
+.post{border:1px solid var(--line);border-radius:10px;padding:8px;display:flex;flex-direction:column;gap:5px}
+.prow{display:flex;align-items:center;gap:5px}
+.pname{font-size:10px;font-weight:700}
+.ptime{font-size:8.5px;color:var(--mut);margin-left:auto}
+.plines{height:7px;border-radius:4px;background:var(--line);opacity:.75}
+.follow{font-size:9px;padding:1.5px 9px;border-radius:999px;border:1px solid var(--accent);color:var(--accent)}
+.follow.on{background:var(--card);border-color:var(--line);color:var(--mut)}
+.plike{font-size:9px;color:var(--mut)}
+.plike b{color:var(--accent)}
+
+/* 主页线框 */
+.stats{display:flex;justify-content:space-around;padding:6px 0}
+.stat{text-align:center}
+.stat b{display:block;font-size:13px}
+.stat span{font-size:8.5px;color:var(--mut)}
+.ptabs{display:flex;border-bottom:1.5px solid var(--line)}
+.ptabs span{flex:1;text-align:center;font-size:10px;padding:5px 0;color:var(--mut)}
+.ptabs span.on{color:var(--accent);font-weight:700;border-bottom:2px solid var(--accent)}
+
+/* 后台线框 */
+.frow{display:flex;align-items:center;gap:8px;font-size:10.5px}
+.frow label{width:52px;color:var(--mut);flex-shrink:0}
+.fin{flex:1;border:1px solid var(--line);border-radius:6px;padding:3.5px 8px;color:var(--mut);font-size:10px}
+.grid9{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;flex:1}
+.cell{border:1.5px dashed var(--line);border-radius:6px;aspect-ratio:1}
+.cell.add{display:flex;align-items:center;justify-content:center;color:var(--mut);font-size:14px;
+  border-color:var(--mut)}
+.radios{display:flex;gap:10px;font-size:10px;color:var(--mut)}
+.radios i{font-style:normal;color:var(--accent);font-weight:700}
+.btnrow{display:flex;gap:8px;justify-content:flex-end}
+.btn{font-size:10.5px;padding:4px 12px;border-radius:7px;border:1px solid var(--line);color:var(--mut)}
+.btn.pri{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:700}
+
+/* 表格线框（后台列表） */
+.wtable{width:100%;border-collapse:collapse;font-size:10px}
+.wtable th,.wtable td{border:1px solid var(--line);padding:4px 6px;text-align:left;color:var(--mut)}
+.wtable th{background:var(--card);color:var(--fg)}
+.wtable .act{color:var(--blue)}
+
+/* 流程/状态流转 */
+.flow{display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:13px;margin:8px 0}
+.fnode{border:1.5px solid var(--accent);color:var(--accent);border-radius:9px;padding:5px 14px;font-weight:600;background:var(--accent-soft)}
+.fnode.off{border-color:var(--warn);color:var(--warn);background:var(--warn-soft)}
+.farrow{color:var(--mut)}
+
+/* 总览地图 */
+.map{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));margin-top:10px}
+.mcol{border:1px solid var(--line);border-radius:13px;padding:16px;background:var(--card)}
+.mcol h3{margin:0 0 4px;font-size:15px}
+.mcol .msub{font-size:12px;color:var(--mut);margin-bottom:10px}
+.mitem{display:block;border:1px solid var(--line);border-radius:9px;background:var(--bg);padding:9px 12px;
+  margin:8px 0;color:var(--fg);cursor:pointer;font-size:13.5px;transition:border-color .15s}
+.mitem:hover{border-color:var(--accent)}
+.mitem small{display:block;color:var(--mut);font-size:11.5px;margin-top:1px}
+.relship{margin:18px 0 6px;border:1px solid var(--line);border-radius:13px;background:var(--card);padding:16px}
+.relship h3{margin:0 0 10px;font-size:15px}
+.relship svg{width:100%;height:auto;display:block}
+
+footer{max-width:1060px;margin:40px auto 0;padding:14px 28px;border-top:1px solid var(--line);
+  color:var(--mut);font-size:12px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px}
+
+/* 响应式 */
+@media (max-width:640px){
+  header,main,footer{padding-left:16px;padding-right:16px}
+  .wfrow{grid-template-columns:1fr}
+  .phone{margin:0 auto}
+}
+</style>
+
+<header>
+  <div class="h1row">
+    <h1>社区动态 4.0 · 需求规格</h1>
+    <span class="hsub">用户端 · 后台 · 代理端 — 11 个模块 · 依据原始 PRD 渲染</span>
+  </div>
+  <nav id="nav">
+    <button data-p="ov" class="on">总览</button>
+    <button data-p="u">用户端 · 5 模块</button>
+    <button data-p="b">后台 · 3 模块</button>
+    <button data-p="a">代理端 · 3 模块</button>
+  </nav>
+</header>
+
+<main>
+
+<!-- ═══════════ 总览 ═══════════ -->
+<section class="panel on" id="p-ov">
+  <p class="lede">社区动态 4.0 覆盖三个端：用户端浏览与互动、后台配置与发布、代理端管理与发布。点击任意模块卡跳到对应规格。</p>
+
+  <div class="map">
+    <div class="mcol">
+      <h3>用户端</h3>
+      <div class="msub">浏览 · 关注 · 点赞 · 个人主页</div>
+      <a class="mitem" data-goto="u" data-anchor="u1">社区动态首页<small>装修区 / 分类导航 / 动态列表 / 发布入口</small></a>
+      <a class="mitem" data-goto="u" data-anchor="u2">个人主页（他人）<small>关注 · 粉丝 · 获赞 · 聚合动态</small></a>
+      <a class="mitem" data-goto="u" data-anchor="u3">动态详情<small>关注按钮与点赞的场景差异</small></a>
+      <a class="mitem" data-goto="u" data-anchor="u4">我的主页<small>动态 / 喜欢 双页签</small></a>
+      <a class="mitem" data-goto="u" data-anchor="u5">关注与粉丝<small>二级列表 · 合并两端关系</small></a>
+    </div>
+    <div class="mcol">
+      <h3>后台</h3>
+      <div class="msub">配置装修 · 维护发布身份 · 发布动态</div>
+      <a class="mitem" data-goto="b" data-anchor="b1">页面装修<small>品牌头部 / 热门创作者两种模式</small></a>
+      <a class="mitem" data-goto="b" data-anchor="b2">发布身份管理<small>启用 / 停用及其连锁影响</small></a>
+      <a class="mitem" data-goto="b" data-anchor="b3">发布动态<small>正文 · 素材 · 身份 · 上架状态</small></a>
+    </div>
+    <div class="mcol">
+      <h3>代理端</h3>
+      <div class="msub">动态管理 · 审核任务 · 主页互动</div>
+      <a class="mitem" data-goto="a" data-anchor="a1">动态管理<small>页签 · 筛选 · 卡片 · 快捷入口</small></a>
+      <a class="mitem" data-goto="a" data-anchor="a2">我的主页<small>动态 / 喜欢 双页签</small></a>
+      <a class="mitem" data-goto="a" data-anchor="a3">关注与粉丝<small>合并两端关注关系</small></a>
+    </div>
+  </div>
+
+  <div class="relship">
+    <h3>三端关系（按 PRD 归纳）</h3>
+    <svg viewBox="0 0 880 300" role="img" aria-label="三端关系图">
+      <defs>
+        <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M0 0L10 5L0 10z" fill="var(--mut)"></path>
+        </marker>
+      </defs>
+      <style>
+        .bx{fill:var(--card);stroke:var(--line);rx:12}
+        .bt{font:600 14px -apple-system,"PingFang SC",sans-serif;fill:var(--fg)}
+        .bs{font:11.5px -apple-system,"PingFang SC",sans-serif;fill:var(--mut)}
+        .ln{stroke:var(--mut);stroke-width:1.6;fill:none;marker-end:url(#ar)}
+        .lt{font:11.5px -apple-system,"PingFang SC",sans-serif;fill:var(--accent);font-weight:600}
+      </style>
+      <!-- 后台 -->
+      <rect class="bx" x="330" y="18" width="220" height="66" rx="12"></rect>
+      <text class="bt" x="440" y="44" text-anchor="middle">后台</text>
+      <text class="bs" x="440" y="63" text-anchor="middle">页面装修 · 发布身份 · 发布动态</text>
+      <!-- 用户端 -->
+      <rect class="bx" x="90" y="200" width="190" height="66" rx="12"></rect>
+      <text class="bt" x="185" y="226" text-anchor="middle">用户端</text>
+      <text class="bs" x="185" y="245" text-anchor="middle">首页 · 主页 · 详情 · 关注粉丝</text>
+      <!-- 代理端 -->
+      <rect class="bx" x="600" y="200" width="190" height="66" rx="12"></rect>
+      <text class="bt" x="695" y="226" text-anchor="middle">代理端</text>
+      <text class="bs" x="695" y="245" text-anchor="middle">动态管理 · 我的主页 · 关注粉丝</text>
+      <!-- 后台 -> 用户端 : 装修/身份配置生效 -->
+      <path class="ln" d="M350 84 C 270 120, 210 160, 190 196"></path>
+      <text class="lt" x="212" y="140">装修模式 / 发布身份 → 生效</text>
+      <!-- 用户端/代理端 -> 聚合 -->
+      <path class="ln" d="M285 233 C 380 233, 500 233, 595 233"></path>
+      <text class="lt" x="375" y="224">两端发布内容聚合到个人主页</text>
+      <!-- 后台 -> 代理端 -->
+      <path class="ln" d="M530 84 C 610 120, 680 160, 697 196"></path>
+      <text class="lt" x="560" y="140">发布身份 → 代理端发布</text>
+    </svg>
+  </div>
+</section>
+
+<!-- ═══════════ 用户端 ═══════════ -->
+<section class="panel" id="p-u">
+
+  <h2 id="u1"><span class="no">1</span>社区动态首页</h2>
+  <p class="lede">浏览社区内容、切换动态分类、关注创作者，并进入个人主页或动态详情。</p>
+  <div class="mod">
+    <div class="wfrow">
+      <div class="wf">
+        <div class="phone">
+          <div class="pz" style="height:86px">顶部装修区<br>品牌头部 <em class="k">或</em> 热门创作者<br><small>后台未配置热门创作者时不展示</small></div>
+          <div class="navtabs">
+            <span class="nt on">所有动态</span><span class="nt">我关注的</span><span class="nt">分类…</span>
+          </div>
+          <div class="post">
+            <div class="prow"><div class="av" style="width:18px;height:18px"></div><span class="pname">创作者</span><span class="follow">+ 关注</span><span class="ptime">2 小时前</span></div>
+            <div class="plines" style="width:92%"></div>
+            <div class="plines" style="width:64%"></div>
+            <div class="pz f" style="min-height:52px">图片 / 视频</div>
+            <span class="plike">♥ <b>点赞数</b></span>
+          </div>
+          <div class="post">
+            <div class="prow"><div class="av" style="width:18px;height:18px"></div><span class="pname">创作者</span><span class="ptime">昨天</span></div>
+            <div class="plines" style="width:80%"></div>
+            <span class="plike">♥ <b>点赞数</b></span>
+          </div>
+          <div class="fab">＋</div>
+        </div>
+        <span class="wfcap">首页结构：装修区 → 分类导航 → 动态流 → 右下角发布按钮</span>
+      </div>
+      <div style="align-self:center">
+        <div class="sub">
+          <h4>页面内容</h4>
+          <ul>
+            <li><b>顶部装修区</b>：按后台配置的装修模式，展示品牌头部或热门创作者</li>
+            <li>后台未配置热门创作者时，顶部不展示该区域</li>
+            <li><b>导航栏</b>：固定展示「所有动态」和「我关注的」，并展示其他已配置分类</li>
+            <li><b>动态列表</b>：发布者头像、昵称、发布时间、正文、图片或视频及点赞数</li>
+            <li><b>发布入口</b>：页面右下角发布按钮</li>
+          </ul>
+        </div>
+        <div class="sub" style="margin-top:14px">
+          <h4>交互说明</h4>
+          <ul>
+            <li>点击创作者头像 → 进入该创作者的<em class="k">个人主页</em></li>
+            <li>点击自己的头像 → 进入<em class="k">我的主页</em></li>
+            <li>动态列表中的创作者支持<em class="k">直接关注</em></li>
+            <li>点击动态 → 进入<em class="k">动态详情</em></li>
+            <li>动态支持<em class="k">点赞和取消点赞</em></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <h2 id="u2"><span class="no">2</span>个人主页（他人主页）</h2>
+  <p class="lede">展示用户信息与其全部已上架动态；代理端发布与用户端发布的动态聚合展示。</p>
+  <div class="mod">
+    <div class="wfrow">
+      <div class="wf">
+        <div class="phone">
+          <div style="display:flex;align-items:center;gap:8px">
+            <div class="av" style="width:42px;height:42px"></div>
+            <div style="flex:1"><div class="pname" style="font-size:12px">用户昵称</div>
+              <span class="ptime">Ta 的动态</span></div>
+            <span class="follow">+ 关注</span>
+          </div>
+          <div class="stats">
+            <div class="stat"><b>128</b><span>关注</span></div>
+            <div class="stat"><b>2.4万</b><span>粉丝</span></div>
+            <div class="stat"><b>8.8万</b><span>获赞</span></div>
+          </div>
+          <div class="ptabs"><span class="on">Ta 的动态</span><span style="opacity:.4">按首次上架</span></div>
+          <div class="post" style="margin-top:7px">
+            <div class="plines" style="width:88%"></div>
+            <div class="pz f" style="min-height:40px">图片 / 视频</div>
+            <span class="plike">♥ <b>点赞数</b></span>
+          </div>
+          <div class="post">
+            <div class="plines" style="width:70%"></div>
+            <span class="plike">♥ <b>点赞数</b></span>
+          </div>
+        </div>
+        <span class="wfcap">他人主页：数据区不可点击 · 动态聚合两端发布</span>
+      </div>
+      <div style="align-self:center;flex:1">
+        <table>
+          <tr><th>状态</th><th>可用操作</th><th>规则</th></tr>
+          <tr><td>未关注</td><td>关注</td><td>点击后关注该用户</td></tr>
+          <tr><td>已关注</td><td>取消关注</td><td>取消关注前需<em class="w">二次确认</em></td></tr>
+          <tr><td>动态未点赞</td><td>点赞</td><td>点赞数同步变化</td></tr>
+          <tr><td>动态已点赞</td><td>取消点赞</td><td>恢复为未点赞状态</td></tr>
+        </table>
+        <div class="sub" style="margin-top:12px">
+          <h4>业务规则</h4>
+          <ul>
+            <li>关注数和粉丝数固定展示数值，<em class="w">不支持点击</em>进入二级页面</li>
+            <li>获赞数 = 该用户全部动态获得的点赞总数</li>
+            <li>主页聚合展示该用户通过不同发布端发布的<em class="k">已上架</em>动态</li>
+          </ul>
+        </div>
+      </div>
+      <div style="align-self:center">
+        <div class="dialog warn">
+          <div class="dbox"><b>取消关注</b><p>确认取消关注当前用户？</p></div>
+          <div class="dbtns"><span>再想想</span><span>取消关注</span></div>
+        </div>
+        <p class="dcap">触发：点击「已关注」或取消关注操作</p>
+      </div>
+    </div>
+  </div>
+
+  <h2 id="u3"><span class="no">3</span>动态详情</h2>
+  <p class="lede">展示单条动态完整内容；是否显示关注按钮取决于动态归属。</p>
+  <div class="mod">
+    <div class="wfrow">
+      <div class="wf">
+        <div class="phone">
+          <div class="prow"><div class="av" style="width:20px;height:20px"></div><span class="pname">发布者</span><span class="follow">+ 关注</span><span class="ptime">发布时间</span></div>
+          <div class="plines" style="width:95%"></div>
+          <div class="plines" style="width:88%"></div>
+          <div class="plines" style="width:52%"></div>
+          <div class="pz f" style="min-height:120px">图片 / 视频</div>
+          <span class="plike" style="font-size:11px">♥ <b>点赞数</b></span>
+          <div class="pz" style="height:56px;color:var(--mut)">查看自己的动态时<br><em class="w">不展示关注 / 取关按钮</em></div>
+        </div>
+        <span class="wfcap">动态详情布局</span>
+      </div>
+      <div style="align-self:center;flex:1">
+        <table>
+          <tr><th>场景</th><th>关注按钮</th><th>点赞操作</th></tr>
+          <tr><td>查看他人动态</td><td>展示关注 / 取关按钮</td><td>支持点赞和取消点赞</td></tr>
+          <tr><td>查看自己的动态</td><td><em class="w">不展示</em>关注 / 取关按钮</td><td>支持点赞和取消点赞</td></tr>
+        </table>
+        <p class="dcap">页面内容：发布者头像、昵称、发布时间、正文、图片或视频及点赞数。</p>
+      </div>
+    </div>
+  </div>
+
+  <h2 id="u4"><span class="no">4</span>我的主页</h2>
+  <p class="lede">与「他人主页」的关键差异：关注数 / 粉丝数可点击进入二级页面，且有「动态 / 喜欢」双页签。</p>
+  <div class="mod">
+    <div class="wfrow">
+      <div class="wf">
+        <div class="phone">
+          <div style="display:flex;align-items:center;gap:8px">
+            <div class="av" style="width:42px;height:42px"></div>
+            <div style="flex:1"><div class="pname" style="font-size:12px">我的昵称</div>
+              <span class="ptime">我的主页</span></div>
+          </div>
+          <div class="stats">
+            <div class="stat"><b style="color:var(--blue);text-decoration:underline">128</b><span>关注 ›</span></div>
+            <div class="stat"><b style="color:var(--blue);text-decoration:underline">2.4万</b><span>粉丝 ›</span></div>
+            <div class="stat"><b>8.8万</b><span>获赞</span></div>
+          </div>
+          <div class="ptabs"><span class="on">动态</span><span>喜欢</span></div>
+          <div class="post" style="margin-top:7px">
+            <div class="plines" style="width:84%"></div>
+            <span class="plike">♥ <b>点赞数</b></span>
+          </div>
+          <div class="post liked" style="border-color:var(--accent)">
+            <div class="plines" style="width:72%"></div>
+            <span class="plike">♥ <b>已点赞样式（喜欢页签）</b></span>
+          </div>
+          <div class="fab">👤</div>
+        </div>
+        <span class="wfcap">我的主页：双页签 · 关注 / 粉丝可点击 · 右下角入口</span>
+      </div>
+      <div style="align-self:center;flex:1">
+        <div class="grid2">
+          <div class="sub">
+            <h4>交互说明</h4>
+            <ul>
+              <li>点击用户自己的头像进入「我的主页」</li>
+              <li>点击关注数或粉丝数 → 进入对应<em class="k">二级页面</em></li>
+              <li>点击动态 → 进入动态详情</li>
+              <li>「动态」和「喜欢」列表中均可点赞或取消点赞</li>
+            </ul>
+          </div>
+          <div class="sub">
+            <h4>业务规则</h4>
+            <ul>
+              <li>获赞数 = 该用户动态获得的点赞总数</li>
+              <li>「动态」仅展示<em class="k">已上架</em>内容，按<em class="k">首次上架时间</em>排序</li>
+              <li>「动态」聚合代理端 + 用户端发布的已上架内容</li>
+              <li>进入<em class="w">自己的</em>动态详情时，不展示关注按钮</li>
+              <li>「喜欢」仅展示点赞过且<em class="k">当前仍上架</em>的动态</li>
+              <li>「喜欢」列表展示已点赞样式，支持取消点赞</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <h2 id="u5"><span class="no">5</span>关注与粉丝</h2>
+  <p class="lede">两个二级列表页：关注列表与粉丝列表，行为规则如下。</p>
+  <div class="mod">
+    <div class="grid2">
+      <div class="sub">
+        <h4>关注列表</h4>
+        <ul>
+          <li>展示当前用户关注的其他人，<em class="k">合并用户端和代理端</em>产生的关注关系</li>
+          <li>支持取消关注，取消前需<em class="w">二次确认</em></li>
+        </ul>
+      </div>
+      <div class="sub">
+        <h4>粉丝列表</h4>
+        <ul>
+          <li>展示关注当前用户的人</li>
+          <li>支持关注对方</li>
+        </ul>
+      </div>
+    </div>
+    <div class="sub" style="margin-top:14px">
+      <h4>通用规则</h4>
+      <ul>
+        <li>用户<em class="w">不允许关注自己</em></li>
+        <li>点击他人头像 → 进入他人主页；点击自己的头像 → 进入「我的主页」</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ 后台 ═══════════ -->
+<section class="panel" id="p-b">
+
+  <h2 id="b1"><span class="no">1</span>页面装修</h2>
+  <p class="lede">配置社区动态首页的名称、头部样式与热门创作者，保存后在用户端生效。</p>
+  <div class="mod">
+    <div class="wfrow">
+      <div class="wf" style="min-width:280px;flex:1">
+        <div class="browser">
+          <div class="bbar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="addr">mall-admin · 页面装修</span></div>
+          <div class="bcontent">
+            <div class="frow"><label>页面名称</label><span class="fin">社区动态</span></div>
+            <div class="frow"><label>装修模式</label><span class="fin">品牌头部 ▾（默认）</span></div>
+            <div class="frow"><label>背景图</label><span class="fin">上传品牌头部背景图片</span></div>
+            <div class="frow"><label>品牌头像</label><span class="fin">上传品牌头部头像</span></div>
+            <div class="frow"><label>标题</label><span class="fin">品牌头部标题</span></div>
+            <div class="frow"><label>简介</label><span class="fin">品牌头部简介</span></div>
+            <div class="btnrow"><span class="btn">取消</span><span class="btn pri">保存</span></div>
+          </div>
+        </div>
+        <span class="wfcap">装修表单 · 保存后用户端生效</span>
+      </div>
+      <div style="flex:1.2;align-self:start">
+        <table>
+          <tr><th>字段</th><th>说明</th></tr>
+          <tr><td>页面名称</td><td>社区动态页面名称</td></tr>
+          <tr><td>装修模式</td><td>品牌头部 或 热门创作者</td></tr>
+          <tr><td>背景图</td><td>品牌头部背景图片</td></tr>
+          <tr><td>品牌头像</td><td>品牌头部头像</td></tr>
+          <tr><td>标题</td><td>品牌头部标题</td></tr>
+          <tr><td>简介</td><td>品牌头部简介</td></tr>
+        </table>
+        <div class="grid2" style="margin-top:12px">
+          <div class="sub">
+            <h4>品牌头部（默认模式）</h4>
+            <ul>
+              <li>默认装修模式</li>
+              <li>保留原有品牌头部设置：背景图、品牌头像、标题、简介</li>
+            </ul>
+          </div>
+          <div class="sub">
+            <h4>热门创作者</h4>
+            <ul>
+              <li>用户端顶部<em class="k">横向</em>展示热门创作者列表</li>
+              <li>最多添加 <em class="k">10 个</em>；装修页可移除已添加的创作者</li>
+              <li>可选择商场角色：<em class="k">代理</em> 和 <em class="k">用户</em>；仅可选用户后台<em class="k">已启用</em>的发布身份</li>
+              <li>已选择的角色不可重复选择</li>
+              <li>支持按用户 ID、身份 ID、昵称搜索，页签切换搜索范围</li>
+              <li>代理和用户对应同一 ID 时，自动保留为一个<em class="k">代理身份</em>创作者</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <h2 id="b2"><span class="no">2</span>发布身份管理</h2>
+  <p class="lede">后台新增「发布身份」导航，维护动态发布时使用的身份；页面装修与动态发布均使用这里配置的身份。历史动态使用过的发布身份需同步显示在列表中。</p>
+  <div class="mod">
+    <div class="wfrow">
+      <div class="wf" style="min-width:300px;flex:1.3">
+        <div class="browser">
+          <div class="bbar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="addr">mall-admin · 发布身份管理</span></div>
+          <div class="bcontent">
+            <div class="btnrow" style="justify-content:flex-start"><span class="btn pri">＋ 新增发布身份</span></div>
+            <table class="wtable">
+              <tr><th>身份 ID</th><th>头像 / 名称</th><th>上架 / 下架</th><th>状态</th><th>操作</th></tr>
+              <tr><td>S-1001</td><td>● 官方小编</td><td>36 / 2</td><td>启用中</td><td class="act">编辑 · 停用</td></tr>
+              <tr><td>S-1002</td><td>● 达人种草</td><td>12 / 5</td><td>已停用</td><td class="act">编辑 · 启用</td></tr>
+              <tr><td>S-1003</td><td>● 商城优选</td><td>88 / 0</td><td>启用中</td><td class="act">编辑 · 停用</td></tr>
+            </table>
+          </div>
+        </div>
+        <span class="wfcap">身份列表：ID · 头像与名称 · 上下架动态数 · 状态 · 操作</span>
+      </div>
+      <div style="flex:1;align-self:start">
+        <div class="sub">
+          <h4>新增发布身份 · 字段</h4>
+          <table>
+            <tr><th>字段</th><th>必填</th><th>规则</th></tr>
+            <tr><td>头像</td><td>否</td><td>点击头像区域更换</td></tr>
+            <tr><td>身份名称</td><td><em class="k">是</em></td><td>最多 15 个字符</td></tr>
+            <tr><td>启用该发布身份</td><td>否</td><td>默认勾选</td></tr>
+          </table>
+        </div>
+        <div class="sub" style="margin-top:12px">
+          <h4>状态流转</h4>
+          <div class="flow">
+            <span class="fnode">启用中</span>
+            <span class="farrow">—停用（二次确认）→</span>
+            <span class="fnode off">已停用</span>
+          </div>
+          <table>
+            <tr><th>状态变更</th><th>结果</th></tr>
+            <tr><td>停用身份</td><td>关联的全部上架动态下架，变更为<em class="w">「直播间下架」</em>，且不能再上架；用户端不再展示该身份，关注列表和粉丝列表中也不再展示</td></tr>
+            <tr><td>重新启用身份</td><td>恢复身份展示，但<em class="w">不会自动</em>重新上架历史动态</td></tr>
+          </table>
+          <ul style="margin-top:8px">
+            <li>启用和停用均需<em class="w">二次确认</em></li>
+            <li>使用已停用身份重新上架动态时，提示「当前发布身份已停用，请更改发布身份后重新上架」</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="grid2" style="margin-top:16px">
+      <div>
+        <div class="dialog warn">
+          <div class="dbox"><b>停用发布身份</b><p>该身份当前上架动态在用户端下架并隐藏，后续可重新启用恢复身份。</p></div>
+          <div class="dbtns"><span>取消</span><span>确认停用</span></div>
+        </div>
+        <p class="dcap">触发：在身份列表点击「停用」</p>
+      </div>
+      <div>
+        <div class="dialog">
+          <div class="dbox"><b>启用发布身份</b><p>恢复身份，但不恢复已下架动态。</p></div>
+          <div class="dbtns"><span>取消</span><span>确认启用</span></div>
+        </div>
+        <p class="dcap">触发：在身份列表点击「启用」</p>
+      </div>
+    </div>
+  </div>
+
+  <h2 id="b3"><span class="no">3</span>发布动态</h2>
+  <p class="lede">后台直接发布动态：填写正文、上传素材、选择发布身份与上架状态。</p>
+  <div class="mod">
+    <div class="wfrow">
+      <div class="wf" style="min-width:280px;flex:1">
+        <div class="browser">
+          <div class="bbar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="addr">mall-admin · 发布动态</span></div>
+          <div class="bcontent">
+            <div class="frow" style="align-items:flex-start"><label>动态内容</label><span class="fin" style="padding:12px 8px">填写正文…</span></div>
+            <div class="frow" style="align-items:flex-start"><label>图片视频</label>
+              <div class="grid9">
+                <div class="cell"></div><div class="cell"></div><div class="cell"></div>
+                <div class="cell"></div><div class="cell add">＋</div>
+              </div>
+            </div>
+            <div class="frow"><label style="width:70px">最多 9 个素材 · 视频仅支持 MP4</label></div>
+            <div class="frow"><label>所属分类</label><span class="fin">选填 ▾</span></div>
+            <div class="frow"><label>发布身份</label><span class="fin">选择身份 ▾（必填，可更换）</span></div>
+            <div class="frow"><label>上架状态</label><span class="radios"><i>●</i> 立即上架&nbsp;&nbsp;○ 下架</span></div>
+            <div class="btnrow"><span class="btn">取消</span><span class="btn pri">创建</span></div>
+          </div>
+        </div>
+        <span class="wfcap">发布动态表单</span>
+      </div>
+      <div style="flex:1;align-self:start">
+        <div class="sub">
+          <h4>选择发布身份</h4>
+          <ul>
+            <li>发布时通过「选择身份」选择发布身份</li>
+            <li>仅支持选择<em class="k">已启用</em>的身份</li>
+            <li>支持按姓名搜索身份</li>
+            <li>点击「发布身份管理」→ 跳转至发布身份管理页面</li>
+          </ul>
+        </div>
+        <div class="sub" style="margin-top:12px">
+          <h4>字段规则</h4>
+          <ul>
+            <li>正文：填写动态内容</li>
+            <li>素材：最多上传 <em class="k">9 个</em>；视频仅支持 <em class="k">MP4</em></li>
+            <li>所属分类：选填</li>
+            <li>发布身份：必填，可更换</li>
+            <li>上架状态：立即上架 或 下架</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ 代理端 ═══════════ -->
+<section class="panel" id="p-a">
+
+  <h2 id="a1"><span class="no">1</span>动态管理</h2>
+  <p class="lede">代理端的动态运营页：页签切换、筛选、动态卡片与快捷发布入口。</p>
+  <div class="mod">
+    <div class="wfrow">
+      <div class="wf">
+        <div class="phone">
+          <div class="ptabs"><span class="on">动态管理</span><span>审核任务 <b style="color:var(--warn)">3</b></span></div>
+          <div style="display:flex;gap:5px">
+            <span class="fin" style="flex:1;text-align:center">发布来源 ▾</span>
+            <span class="fin" style="flex:1;text-align:center">动态状态 ▾</span>
+          </div>
+          <div class="post">
+            <div class="prow"><div class="av" style="width:16px;height:16px"></div><span class="pname">发布者</span><span class="ptime">ID · 已上架</span></div>
+            <div class="plines" style="width:90%"></div>
+            <div class="plines" style="width:50%"></div>
+            <div class="pz" style="min-height:34px">图片</div>
+            <div style="display:flex;justify-content:space-between"><span class="ptime">创建时间 · 首次上架时间</span><span class="plike">♥ <b>点赞数</b></span></div>
+            <div style="display:flex;gap:6px"><span class="btn">查看详情</span><span class="btn">下架</span></div>
+          </div>
+          <div class="post">
+            <div class="prow"><span class="tag w" style="font-size:9px">代理下架</span><span class="ptime">代理代发动态状态标识</span></div>
+            <div class="plines" style="width:70%"></div>
+          </div>
+          <div class="fab">＋</div>
+        </div>
+        <span class="wfcap">动态管理：页签 · 筛选 · 卡片 · 右下角快捷入口</span>
+      </div>
+      <div style="align-self:center;flex:1">
+        <div class="grid2">
+          <div class="sub">
+            <h4>页面内容</h4>
+            <ul>
+              <li><b>顶部页签</b>：动态管理、审核任务；审核任务展示待处理数量</li>
+              <li><b>筛选项</b>：发布来源、动态状态</li>
+              <li><b>动态卡片</b>：发布者、ID、发布状态、正文、图片、创建时间、首次上架时间、点赞数</li>
+              <li><b>列表操作</b>：查看详情、下架</li>
+              <li>代理代发的动态展示<em class="k">「代理下架」</em>等状态标识</li>
+            </ul>
+          </div>
+          <div class="sub">
+            <h4>快捷入口</h4>
+            <ul>
+              <li>点击右下角「＋」展开快捷操作</li>
+              <li>快捷操作包括：<em class="k">我的主页</em> 和 <em class="k">发布动态</em></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <h2 id="a2"><span class="no">2</span>我的主页（代理端）</h2>
+  <p class="lede">结构与用户端「我的主页」一致：头像昵称、三项数据、动态 / 喜欢双页签。</p>
+  <div class="mod">
+    <div class="grid2">
+      <div class="sub">
+        <h4>页面内容</h4>
+        <ul>
+          <li>展示头像、昵称、关注数、粉丝数和获赞数</li>
+          <li>页面包含「动态」和「喜欢」两个页签</li>
+          <li>点击关注数或粉丝数进入对应二级页面</li>
+        </ul>
+      </div>
+      <div class="sub">
+        <h4>业务规则</h4>
+        <ul>
+          <li>获赞数 = 该用户动态获得的点赞总数</li>
+          <li>「动态」仅包含<em class="k">已上架</em>动态，按<em class="k">首次上架时间</em>排序</li>
+          <li>「动态」聚合代理端发布 + 用户端发布的已上架内容</li>
+          <li>支持点赞和取消点赞</li>
+          <li>点击动态进入详情；<em class="w">自己的</em>动态详情不展示关注按钮</li>
+          <li>「喜欢」仅展示点赞过且仍处于上架状态的动态，支持取消点赞</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <h2 id="a3"><span class="no">3</span>关注与粉丝（代理端）</h2>
+  <p class="lede">规则与用户端一致，关注关系同样合并两端产生。</p>
+  <div class="mod">
+    <div class="grid2">
+      <div class="sub">
+        <h4>关注列表</h4>
+        <ul>
+          <li>展示当前用户关注的其他人，<em class="k">合并用户端和代理端</em>的关注关系</li>
+          <li>支持取消关注，取消前需<em class="w">二次确认</em></li>
+        </ul>
+      </div>
+      <div class="sub">
+        <h4>粉丝列表</h4>
+        <ul>
+          <li>展示关注当前用户的人，并支持关注对方</li>
+        </ul>
+      </div>
+    </div>
+    <div class="sub" style="margin-top:14px">
+      <h4>通用规则</h4>
+      <ul>
+        <li>不允许关注自己</li>
+        <li>点击他人头像进入他人主页；点击自己的头像进入「我的主页」</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <span>社区动态 4.0 · 需求规格可视化 — 内容依据原始 PRD 渲染，未增删需求</span>
+  <span>自包含单文件 · 断网可打开</span>
+</footer>
+
+<script>
+(function(){
+  var nav=document.getElementById('nav');
+  function show(p){
+    document.querySelectorAll('.panel').forEach(function(s){s.classList.toggle('on',s.id==='p-'+p)});
+    nav.querySelectorAll('button').forEach(function(b){b.classList.toggle('on',b.dataset.p===p)});
+    window.scrollTo({top:0});
+  }
+  nav.addEventListener('click',function(e){
+    var b=e.target.closest('button'); if(!b)return; show(b.dataset.p);
+  });
+  document.querySelectorAll('.mitem').forEach(function(m){
+    m.addEventListener('click',function(){
+      show(m.dataset.goto);
+      var t=document.getElementById(m.dataset.anchor);
+      if(t) setTimeout(function(){ t.scrollIntoView({behavior:'smooth',block:'start'}); },60);
+    });
+  });
+  // 支持 #u1 形式的锚点直接打开对应面板
+  if(location.hash){
+    var h=location.hash.slice(1); var el=document.getElementById(h);
+    if(el){ var panel=el.closest('.panel'); if(panel) show(panel.id.slice(2)); }
+  }
+})();
+</script>
+</html>
